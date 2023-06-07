@@ -4,17 +4,19 @@ const jwt = require("jsonwebtoken");
 //
 const User = require("../../modal/userSchema");
 
-//register a user
+//create a user
 const registerUser = async (req, res, next) => {
   try {
     const { password, name, email } = req.body;
     const { filename } = req.file || {};
     const hashedPassword = await bcrypt.hash(password, 11);
+    console.log(hashedPassword);
     const user = new User({
       name,
       email,
       profilePic: filename || null,
       password: hashedPassword,
+      role: "user",
     });
     const userData = await user.save();
     if (userData._id) {
@@ -35,8 +37,52 @@ const registerUser = async (req, res, next) => {
 };
 
 //login a user
-const loginUser = (req, res, next) => {
-  res.send("hello user");
+const loginUser = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email: email });
+    if (user && user._id) {
+      const isValidPassword = await bcrypt.compare(
+        req.body.password,
+        user.password
+      );
+
+      if (isValidPassword) {
+        //user object
+        const userInfo = {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        };
+
+        //generate token
+        const token = jwt.sign(userInfo, process.env.JWT_SECTET, {
+          expiresIn: 86400000,
+        });
+
+        res.status(200).json({
+          message: "Loggedin SuccessFull",
+          data: {
+            user: userInfo,
+            accessToken: token,
+          },
+        });
+      } else {
+        res.status(500).json({
+          message: "There was an error!!",
+        });
+      }
+    } else {
+      res.status(500).json({
+        message: "There was an error!",
+      });
+    }
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
 };
 
 module.exports = {

@@ -8,7 +8,7 @@ const userRouter = require("./routes/users/userRouter")
 
 const app = express();
 
-//common middleware
+//common middlemare
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
