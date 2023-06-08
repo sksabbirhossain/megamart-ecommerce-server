@@ -4,7 +4,8 @@ const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 
 //
-const userRouter = require("./routes/users/userRouter")
+const userRouter = require("./routes/users/userRouter");
+const adminRouter = require("./routes/admin/adminRouter");
 
 const app = express();
 
@@ -28,6 +29,7 @@ mongoose
 
 //routes
 app.use("/api/user", userRouter);
+app.use("/api/admin", adminRouter);
 
 //error handler
 app.use((err, req, res, next) => {

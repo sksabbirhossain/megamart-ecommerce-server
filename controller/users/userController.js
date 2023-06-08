@@ -49,12 +49,8 @@ const loginUser = async (req, res) => {
 
       if (isValidPassword) {
         //user object
-        const userInfo = {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-        };
+        const userInfo = { ...user._doc };
+        delete userInfo.password;
 
         //generate token
         const token = jwt.sign(userInfo, process.env.JWT_SECTET, {
