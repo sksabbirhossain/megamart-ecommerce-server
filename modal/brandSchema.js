@@ -9,7 +9,7 @@ const brandSchema = mongoose.Schema(
     description: {
       type: String,
       required: true,
-      min: 10,
+      minlength: 10,
     },
     picture: {
       type: String,
