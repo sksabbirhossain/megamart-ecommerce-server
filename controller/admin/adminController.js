@@ -34,18 +34,18 @@ const loginAdmin = async (req, res) => {
             },
           });
         } else {
-          res.status(500).json({
-            message: "There was an error!!",
+          res.status(401).json({
+            message: "Wrong credentials!",
           });
         }
       } else {
         res.status(401).json({
-          message: "There was an error!",
+          message: "Authentication failure!",
         });
       }
     } else {
-      res.status(500).json({
-        message: "There was an error!",
+      res.status(401).json({
+        message: "Wrong credentials!",
       });
     }
   } catch (err) {

@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 //
 const userRouter = require("./routes/users/userRouter");
 const adminRouter = require("./routes/admin/adminRouter");
+const brandRouter = require("./routes/brand/brandRouter");
 
 const app = express();
 
@@ -16,7 +17,7 @@ app.use(cors());
 dotenv.config();
 
 //static folder
-app.use("/uploads", express.static("./uploads"));
+app.use("/api/uploads", express.static("./uploads"));
 
 //port
 const port = process.env.PORT || 5000;
@@ -30,6 +31,7 @@ mongoose
 //routes
 app.use("/api/user", userRouter);
 app.use("/api/admin", adminRouter);
+app.use("/api/brand", brandRouter);
 
 //error handler
 app.use((err, req, res, next) => {

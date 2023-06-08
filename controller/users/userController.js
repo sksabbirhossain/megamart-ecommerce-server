@@ -22,7 +22,9 @@ const registerUser = async (req, res, next) => {
     if (userData._id) {
       res.status(200).json({
         message: "User Create SuccessFull",
-        user: userData,
+        data: {
+          user: userData,
+        },
       });
     } else {
       res.status(500).json({
