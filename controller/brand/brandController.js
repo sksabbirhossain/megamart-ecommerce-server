@@ -3,12 +3,9 @@ const Brand = require("../../modal/brandSchema");
 //get all brands
 const getAllBrands = async (req, res, next) => {
   try {
-    const brand = await Brand.find({});
+    const brands = await Brand.find({});
     res.status(200).json({
-      message: "success",
-      data: {
-        brand: brand,
-      },
+      brands: brands,
     });
   } catch (err) {
     res.status(500).json({
@@ -16,6 +13,7 @@ const getAllBrands = async (req, res, next) => {
     });
   }
 };
+
 //add a brand
 const addBrand = async (req, res, next) => {
   try {
@@ -25,14 +23,12 @@ const addBrand = async (req, res, next) => {
       name,
       description,
       picture: filename,
+      status: "active",
     });
     const result = await brand.save();
     if (result._id) {
       res.status(200).json({
-        message: "success",
-        data: {
-          brand: brand,
-        },
+        brand: brand,
       });
     } else {
       res.status(500).json({
@@ -46,7 +42,34 @@ const addBrand = async (req, res, next) => {
   }
 };
 
+//update a brand status
+const updateBrandStatus = async (req, res, next) => {
+  try {
+    const { status } = req.body;
+    const { brandid } = req.params;
+    const updateData = await Brand.findByIdAndUpdate(
+      { _id: brandid },
+      {
+        $set: {
+          status: status,
+        },
+      },
+      {
+        new: true,
+      }
+    );
+    res.status(200).json({
+      brand: updateData,
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+};
+
 module.exports = {
   getAllBrands,
   addBrand,
+  updateBrandStatus,
 };
