@@ -14,6 +14,19 @@ const getAllBrands = async (req, res, next) => {
   }
 };
 
+//get a brand
+const getBrand = async (req, res, nex) => {
+  try {
+    const { brandId } = req.params;
+    const brands = await Brand.find({ _id: brandId });
+    res.status(200).json(brands);
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+};
+
 //add a brand
 const addBrand = async (req, res, next) => {
   try {
@@ -23,7 +36,6 @@ const addBrand = async (req, res, next) => {
       name,
       description,
       picture: filename,
-      status: "active",
     });
     const result = await brand.save();
     if (result._id) {
@@ -42,6 +54,31 @@ const addBrand = async (req, res, next) => {
   }
 };
 
+//update a brand
+const updateBrand = async (req, res, next) => {
+  try {
+    const { status } = req.body;
+    const { brandid } = req.params;
+    const updateData = await Brand.findByIdAndUpdate(
+      { _id: brandid },
+      {
+        $set: {
+          status: status,
+        },
+      },
+      {
+        new: true,
+      }
+    );
+    res.status(200).json({
+      brand: updateData,
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+};
 //update a brand status
 const updateBrandStatus = async (req, res, next) => {
   try {
@@ -70,6 +107,8 @@ const updateBrandStatus = async (req, res, next) => {
 
 module.exports = {
   getAllBrands,
+  getBrand,
   addBrand,
+  updateBrand,
   updateBrandStatus,
 };
