@@ -134,10 +134,40 @@ const updateBrandStatus = async (req, res, next) => {
   }
 };
 
+//delete brand
+const deleteBrand = async (req, res, next) => {
+  try {
+    const { brandId } = req.params;
+
+    // Find the brand by brandId
+    const brand = await Brand.findById(brandId);
+
+    if (!brand) {
+      return res.status(404).json({ error: "Brand not found" });
+    }
+
+    // Delete the picture from the local folder
+    if (brand.picture) {
+      const picturePath = path.join("./uploads", brand.picture);
+      fs.unlinkSync(picturePath);
+    }
+
+    // Delete the brand from the database
+    await Brand.findOneAndRemove(brandId);
+
+    res.status(200).json({ message: "Brand deleted successfully" });
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+};
+
 module.exports = {
   getAllBrands,
   getBrand,
   addBrand,
   updateBrand,
   updateBrandStatus,
+  deleteBrand,
 };
