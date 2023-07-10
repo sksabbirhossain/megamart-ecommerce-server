@@ -7,6 +7,7 @@ const mongoose = require("mongoose");
 const userRouter = require("./routes/users/userRouter");
 const adminRouter = require("./routes/admin/adminRouter");
 const brandRouter = require("./routes/brand/brandRouter");
+const categoryRouter = require("./routes/category/categoryRouter");
 
 const app = express();
 
@@ -32,6 +33,7 @@ mongoose
 app.use("/api/user", userRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/brand", brandRouter);
+app.use("/api/category", categoryRouter);
 
 //error handler
 app.use((err, req, res, next) => {
