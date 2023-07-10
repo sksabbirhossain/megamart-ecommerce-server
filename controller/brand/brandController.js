@@ -6,9 +6,7 @@ const path = require("path");
 const getAllBrands = async (req, res, next) => {
   try {
     const brands = await Brand.find({});
-    res.status(200).json({
-      brands: brands,
-    });
+    res.status(200).json(brands);
   } catch (err) {
     res.status(500).json({
       message: err.message,
