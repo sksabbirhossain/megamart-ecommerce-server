@@ -75,9 +75,39 @@ const updateStatus = async (req, res, next) => {
   }
 };
 
+//delete a category
+const deleteCategory = async (req, res, next) => {
+  try {
+    const { categoryId } = req.params;
+
+    // Find the category by categoryId
+    const category = await Category.findById(categoryId);
+
+    if (!category) {
+      return res.status(404).json({ error: "Category not found" });
+    }
+
+    // Delete the picture from the local folder
+    if (category.picture) {
+      const picturePath = path.join("./uploads", category.picture);
+      fs.unlinkSync(picturePath);
+    }
+
+    // Delete the category from the database
+    await Category.findOneAndRemove(categoryId);
+
+    res.status(200).json({ message: "Category deleted successfully" });
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+};
+
 module.exports = {
   getCategories,
   getCategory,
   addCategory,
   updateStatus,
+  deleteCategory,
 };
