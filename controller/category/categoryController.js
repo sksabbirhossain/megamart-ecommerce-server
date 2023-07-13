@@ -51,6 +51,58 @@ const addCategory = async (req, res, next) => {
   }
 };
 
+//update a category
+const updateCategory = async (req, res, next) => {
+  try {
+    const { categoryId } = req.params;
+    const { name, brandInfo, status } = req.body;
+    const { filename } = req.file || {};
+
+    // Find the brand by brandId
+    const category = await Category.findById(categoryId);
+
+    if (!category) {
+      return res.status(404).json({ error: "Category not found" });
+    }
+
+    // Update the name if provided
+    if (name) {
+      category.name = name;
+    }
+
+    // Update the description if provided
+    if (brandInfo) {
+      category.brandInfo = brandInfo;
+    }
+
+    // Update the status if provided
+    if (status !== undefined) {
+      category.status = status;
+    }
+
+    // Check if a new picture is provided
+    if (filename) {
+      // Delete the old picture from the local folder
+      if (category.picture) {
+        const oldPicturePath = path.join("./uploads", category.picture);
+        fs.unlinkSync(oldPicturePath);
+      }
+
+      // Update the picture filename
+      category.picture = filename;
+    }
+
+    // Save the updated brand
+    const updatedCategory = await category.save();
+
+    res.status(200).json(updatedCategory);
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+};
+
 //update category status
 const updateStatus = async (req, res, next) => {
   try {
@@ -108,6 +160,7 @@ module.exports = {
   getCategories,
   getCategory,
   addCategory,
+  updateCategory,
   updateStatus,
   deleteCategory,
 };
