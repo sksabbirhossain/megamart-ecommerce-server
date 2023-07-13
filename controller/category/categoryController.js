@@ -1,9 +1,23 @@
 const Category = require("../../modal/categorySchema");
 
-const getCategory = async (req, res, next) => {
+//get all categories
+const getCategories = async (req, res, next) => {
   try {
     const categories = await Category.find({});
     res.status(200).json(categories);
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+};
+
+//get a category
+const getCategory = async () => {
+  try {
+    const { categoryId } = req.params;
+    const category = await Category.find({ _id: categoryId });
+    res.status(200).json(category);
   } catch (err) {
     res.status(500).json({
       message: err.message,
@@ -37,6 +51,7 @@ const addCategory = async (req, res, next) => {
 };
 
 module.exports = {
+  getCategories,
   getCategory,
   addCategory,
 };
