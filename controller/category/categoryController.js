@@ -25,6 +25,7 @@ const getCategory = async () => {
   }
 };
 
+//add a new category
 const addCategory = async (req, res, next) => {
   try {
     const { name, brandInfo } = req.body;
@@ -50,8 +51,33 @@ const addCategory = async (req, res, next) => {
   }
 };
 
+//update category status
+const updateStatus = async (req, res, next) => {
+  try {
+    const { categoryId } = req.params;
+    const { status } = req.body;
+    const updateData = await Brand.findByIdAndUpdate(
+      { _id: categoryId },
+      {
+        $set: {
+          status: status,
+        },
+      },
+      {
+        new: true,
+      }
+    );
+    res.status(200).json(updateData);
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+};
+
 module.exports = {
   getCategories,
   getCategory,
   addCategory,
+  updateStatus,
 };
