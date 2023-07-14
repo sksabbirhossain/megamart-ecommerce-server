@@ -1,3 +1,5 @@
+const path = require("path");
+const fs = require("fs");
 const Category = require("../../modal/categorySchema");
 
 //get all categories
@@ -108,7 +110,7 @@ const updateStatus = async (req, res, next) => {
   try {
     const { categoryId } = req.params;
     const { status } = req.body;
-    const updateData = await Brand.findByIdAndUpdate(
+    const updateData = await Category.findByIdAndUpdate(
       { _id: categoryId },
       {
         $set: {
@@ -142,7 +144,9 @@ const deleteCategory = async (req, res, next) => {
     // Delete the picture from the local folder
     if (category.picture) {
       const picturePath = path.join("./uploads", category.picture);
-      fs.unlinkSync(picturePath);
+      if (fs.existsSync(picturePath)) {
+        fs.unlinkSync(picturePath);
+      }
     }
 
     // Delete the category from the database
