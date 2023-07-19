@@ -15,10 +15,12 @@ const getCategories = async (req, res, next) => {
 };
 
 //get a category
-const getCategory = async () => {
+const getCategory = async (req, res, next) => {
   try {
     const { categoryId } = req.params;
-    const category = await Category.find({ _id: categoryId });
+    const category = await Category.find({ _id: categoryId }).populate(
+      "brandInfo"
+    );
     res.status(200).json(category);
   } catch (err) {
     res.status(500).json({

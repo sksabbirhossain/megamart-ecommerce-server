@@ -8,6 +8,7 @@ const userRouter = require("./routes/users/userRouter");
 const adminRouter = require("./routes/admin/adminRouter");
 const brandRouter = require("./routes/brand/brandRouter");
 const categoryRouter = require("./routes/category/categoryRouter");
+const productRouter = require("./routes/product/productRouter");
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use("/api/user", userRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/brand", brandRouter);
 app.use("/api/category", categoryRouter);
+app.use("/api/product", productRouter);
 
 //error handler
 app.use((err, req, res, next) => {
