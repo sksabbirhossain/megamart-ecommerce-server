@@ -38,8 +38,28 @@ const getProduct = async (req, res) => {
 };
 
 //add a product
+const addProduct = async (req, res) => {
+  try {
+    const { filename } = req.file || {};
+    const product = new Product({
+      ...req.body,
+      picture: filename,
+    });
+    const result = await product.save();
+    if (result._id) {
+      res.status(200).json(result);
+    }
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+};
+
+//delete 
 
 module.exports = {
   getProducts,
   getProduct,
+  addProduct,
 };
