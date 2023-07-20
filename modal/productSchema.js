@@ -30,10 +30,12 @@ const productSchema = mongoose.Schema(
     brand: {
       type: mongoose.Types.ObjectId,
       ref: "Brand",
+      required: true,
     },
     category: {
       type: mongoose.Types.ObjectId,
       ref: "Category",
+      required: true,
     },
   },
   { timestamps: true }
