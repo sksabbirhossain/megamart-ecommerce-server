@@ -20,7 +20,7 @@ const getProducts = async (req, res) => {
   }
 };
 
-//get product by id
+//get a product by id
 const getProduct = async (req, res) => {
   const { productId } = req.params;
   try {
@@ -75,6 +75,78 @@ const updateProductStatus = async (req, res) => {
       }
     );
     res.status(200).json(updateData);
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+};
+
+//update product
+const updateProuct = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const { name, brand, category, description, price, stock, status } =
+      req.body;
+    const { filename } = req.file || {};
+
+    // Find the brand by brandId
+    const product = await Product.findById(productId);
+
+    if (!product) {
+      return res.status(404).json({ error: "Category not found" });
+    }
+
+    // Update the name if provided
+    if (name) {
+      product.name = name;
+    }
+
+    // Update the description if provided
+    if (brand) {
+      product.brand = brand;
+    }
+    // Update the category if provided
+    if (category) {
+      product.category = category;
+    }
+
+    // Update the description if provided
+    if (description) {
+      product.description = description;
+    }
+
+    // Update the price if provided
+    if (price) {
+      product.price = price;
+    }
+
+    // Update the stock if provided
+    if (stock) {
+      product.price = stock;
+    }
+
+    // Update the status if provided
+    if (status !== undefined) {
+      product.status = status;
+    }
+
+    // Check if a new picture is provided
+    if (filename) {
+      // Delete the old picture from the local folder
+      if (product.picture) {
+        const oldPicturePath = path.join("./uploads", product.picture);
+        fs.unlinkSync(oldPicturePath);
+      }
+
+      // Update the picture filename
+      product.picture = filename;
+    }
+
+    // Save the updated brand
+    const updatedProduct = await product.save();
+
+    res.status(200).json(updatedProduct);
   } catch (err) {
     res.status(500).json({
       message: err.message,
