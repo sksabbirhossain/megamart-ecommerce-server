@@ -29,6 +29,19 @@ const getCategory = async (req, res, next) => {
   }
 };
 
+//get categories by brandId
+const getCategoriesByBrandId = async (req, res) => {
+  try {
+    const { brandId } = req.params;
+    const categories = Category.find({ brandInfo: brandId });
+    res.status(200).json(categories);
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+};
+
 //add a new category
 const addCategory = async (req, res, next) => {
   try {

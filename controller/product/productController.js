@@ -190,4 +190,5 @@ module.exports = {
   addProduct,
   deleteProduct,
   updateProductStatus,
+  updateProuct,
 };
