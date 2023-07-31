@@ -156,10 +156,12 @@ const updateProuct = async (req, res) => {
 
 //delete a product
 const deleteProduct = async (req, res) => {
-  const { productId } = req.params;
   try {
-    // Find the category by categoryId
-    const product = await Product.findById(productId);
+    const { productId } = req.params;
+
+    // Delete  product from the database
+    const product = await Product.findByIdAndDelete(productId);
+    // console.log(product)
 
     if (!product) {
       return res.status(404).json({ error: "Product not found" });
@@ -173,10 +175,7 @@ const deleteProduct = async (req, res) => {
       }
     }
 
-    // Delete  product from the database
-    await Product.findOneAndRemove(productId);
-
-    res.status(200).json({ message: "Product deleted successfully" });
+    return res.status(200).json({ message: "Product deleted successfully" });
   } catch (err) {
     res.status(500).json({
       message: err.message,

@@ -33,7 +33,7 @@ const getCategory = async (req, res, next) => {
 const getCategoriesByBrandId = async (req, res) => {
   try {
     const { brandId } = req.params;
-    const categories = Category.find({ brandInfo: brandId });
+    const categories = await Category.find({ brandInfo: brandId });
     res.status(200).json(categories);
   } catch (err) {
     res.status(500).json({
@@ -149,8 +149,8 @@ const deleteCategory = async (req, res, next) => {
   try {
     const { categoryId } = req.params;
 
-    // Find the category by categoryId
-    const category = await Category.findById(categoryId);
+    // Delete the category from the database
+    const category = await Category.findByIdAndDelete(categoryId);
 
     if (!category) {
       return res.status(404).json({ error: "Category not found" });
@@ -164,10 +164,7 @@ const deleteCategory = async (req, res, next) => {
       }
     }
 
-    // Delete the category from the database
-    await Category.findOneAndRemove(categoryId);
-
-    res.status(200).json({ message: "Category deleted successfully" });
+    await res.status(200).json({ message: "Category deleted successfully" });
   } catch (err) {
     res.status(500).json({
       message: err.message,
@@ -178,6 +175,7 @@ const deleteCategory = async (req, res, next) => {
 module.exports = {
   getCategories,
   getCategory,
+  getCategoriesByBrandId,
   addCategory,
   updateCategory,
   updateStatus,

@@ -137,8 +137,8 @@ const deleteBrand = async (req, res, next) => {
   try {
     const { brandId } = req.params;
 
-    // Find the brand by brandId
-    const brand = await Brand.findById(brandId);
+    // Delete the brand from the database
+    const brand = await Brand.findByIdAndDelete(brandId);
 
     if (!brand) {
       return res.status(404).json({ error: "Brand not found" });
@@ -147,13 +147,12 @@ const deleteBrand = async (req, res, next) => {
     // Delete the picture from the local folder
     if (brand.picture) {
       const picturePath = path.join("./uploads", brand.picture);
-      fs.unlinkSync(picturePath);
+      if (fs.existsSync(picturePath)) {
+        fs.unlinkSync(picturePath);
+      }
     }
 
-    // Delete the brand from the database
-    await Brand.findOneAndRemove(brandId);
-
-    res.status(200).json({ message: "Brand deleted successfully" });
+    return res.status(200).json({ message: "Brand deleted successfully" });
   } catch (err) {
     res.status(500).json({
       message: err.message,
