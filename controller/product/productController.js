@@ -24,7 +24,10 @@ const getProducts = async (req, res) => {
 const getProduct = async (req, res) => {
   const { productId } = req.params;
   try {
-    const product = await Product.find({ _id: productId });
+    const product = await Product.findById({ _id: productId })
+      .populate("brand")
+      .populate("category")
+      .exec();
     if (product) {
       res.status(200).json(product);
     } else {
@@ -123,7 +126,7 @@ const updateProuct = async (req, res) => {
 
     // Update the stock if provided
     if (stock) {
-      product.price = stock;
+      product.stock = stock;
     }
 
     // Update the status if provided
