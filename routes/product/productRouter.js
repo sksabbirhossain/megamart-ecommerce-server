@@ -6,13 +6,15 @@ const {
   deleteProduct,
   updateProductStatus,
   updateProuct,
+  getFeatureProduct,
 } = require("../../controller/product/productController");
 const upload = require("../../middlemare/singleFileUpload");
 const checkedLogin = require("../../middlemare/checkedLogin");
 const router = express.Router();
 
+//routes for admin dashboard
 router.get("/all", getProducts);
-router.get("/:productId", getProduct);
+router.get("/product/:productId", getProduct);
 router.post("/add-product", checkedLogin, upload.single("picture"), addProduct);
 router.patch(
   "/update-product-status/:productId",
@@ -26,5 +28,8 @@ router.patch(
   updateProuct
 );
 router.delete("/delete-product/:productId", checkedLogin, deleteProduct);
+
+//routes for users
+router.get("/featue-products", getFeatureProduct);
 
 module.exports = router;

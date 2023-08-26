@@ -27,6 +27,11 @@ const productSchema = mongoose.Schema(
       type: Number,
       required: true,
     },
+    feature: {
+      type: Boolean,
+      enum: [true, false],
+      default: false,
+    },
     brand: {
       type: mongoose.Types.ObjectId,
       ref: "Brand",

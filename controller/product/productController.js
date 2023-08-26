@@ -20,6 +20,28 @@ const getProducts = async (req, res) => {
   }
 };
 
+//get feature products
+const getFeatureProduct = async (req, res) => {
+  try {
+    const featureProduct = await Product.aggregate([
+      { $match: { feature: true } },
+      { $sample: { size: 10 } },
+    ]);
+
+    if (featureProduct) {
+      res.status(200).json(featureProduct);
+    } else {
+      res.status(500).json({
+        message: "There was a server side error!",
+      });
+    }
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+};
+
 //get a product by id
 const getProduct = async (req, res) => {
   const { productId } = req.params;
@@ -188,6 +210,7 @@ const deleteProduct = async (req, res) => {
 
 module.exports = {
   getProducts,
+  getFeatureProduct,
   getProduct,
   addProduct,
   deleteProduct,

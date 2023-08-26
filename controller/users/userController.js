@@ -43,6 +43,12 @@ const loginUser = async (req, res) => {
     const { email } = req.body;
     const user = await User.findOne({ email: email });
     if (user && user._id) {
+      if (user.role !== "user") {
+        res.status(500).json({
+          message: "There was an error!!",
+        });
+      }
+
       const isValidPassword = await bcrypt.compare(
         req.body.password,
         user.password
