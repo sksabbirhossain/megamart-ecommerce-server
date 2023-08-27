@@ -41,6 +41,25 @@ const getFeatureProduct = async (req, res) => {
     });
   }
 };
+//get  products by category
+const getProductByCategory = async (req, res) => {
+  const { categoryId } = req.params;
+  try {
+    const relatedProducts = await Product.find({ category: categoryId });
+
+    if (relatedProducts) {
+      res.status(200).json(relatedProducts);
+    } else {
+      res.status(500).json({
+        message: "There was a server side error!",
+      });
+    }
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+};
 
 //get a product by id
 const getProduct = async (req, res) => {
@@ -211,7 +230,9 @@ const deleteProduct = async (req, res) => {
 module.exports = {
   getProducts,
   getFeatureProduct,
+  getProductByCategory,
   getProduct,
+
   addProduct,
   deleteProduct,
   updateProductStatus,
