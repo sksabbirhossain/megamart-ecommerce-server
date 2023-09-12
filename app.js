@@ -10,6 +10,7 @@ const brandRouter = require("./routes/brand/brandRouter");
 const categoryRouter = require("./routes/category/categoryRouter");
 const productRouter = require("./routes/product/productRouter");
 const paymentRouter = require("./routes/payment/paymentRouter");
+const orderRouter = require("./routes/order/orderRouter");
 
 const app = express();
 
@@ -38,6 +39,7 @@ app.use("/api/brand", brandRouter);
 app.use("/api/category", categoryRouter);
 app.use("/api/product", productRouter);
 app.use("/api/payment", paymentRouter);
+app.use("/api/order", orderRouter);
 
 //error handler
 app.use((err, req, res, next) => {

@@ -22,6 +22,8 @@ const createPayment = async (req, res) => {
       description: "Example Charge",
     });
 
+    console.log(charge)
+
     // Save shipping info and transaction ID to MongoDB
     if (charge.id) {
       const order = new Order({
@@ -32,6 +34,7 @@ const createPayment = async (req, res) => {
         shippingInfo: shippingInfo,
       });
       const result = await order.save();
+      console.log(result)
       if (result) {
         res.json({ success: true, charge });
       } else {

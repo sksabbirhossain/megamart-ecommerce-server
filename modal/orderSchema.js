@@ -22,7 +22,13 @@ const orderSchema = new mongoose.Schema(
       type: Object,
       required: true,
     },
+    oderStatus: {
+      type: String,
+      enum: ["delivered", "processing", "completed"],
+      default: "processing",
+    },
   },
+
   {
     timestamps: true, // Automatically add createdAt and updatedAt fields
   }
