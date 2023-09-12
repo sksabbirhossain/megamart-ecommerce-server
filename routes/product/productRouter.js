@@ -8,6 +8,7 @@ const {
   updateProuct,
   getFeatureProduct,
   getProductByCategory,
+  searchProducts,
 } = require("../../controller/product/productController");
 const upload = require("../../middlemare/singleFileUpload");
 const checkedLogin = require("../../middlemare/checkedLogin");
@@ -33,5 +34,8 @@ router.delete("/delete-product/:productId", checkedLogin, deleteProduct);
 //routes for users
 router.get("/featue-products", getFeatureProduct);
 router.get("/product-by-category/:categoryId", getProductByCategory);
+
+//common
+router.get("/search", searchProducts);
 
 module.exports = router;

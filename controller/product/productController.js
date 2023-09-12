@@ -4,10 +4,14 @@ const Product = require("../../modal/productSchema");
 
 //get all product
 const getProducts = async (req, res) => {
+  const { page, limit } = req.query;
   try {
-    const products = await Product.find({});
+    const productLength = await Product.countDocuments({});
+    const products = await Product.find({})
+      .skip((page - 1) * limit)
+      .limit(limit);
     if (products) {
-      res.status(200).json(products);
+      res.status(200).json({ data: products, totalItems: productLength });
     } else {
       res.status(500).json({
         message: "There was a server side error!",
@@ -227,14 +231,44 @@ const deleteProduct = async (req, res) => {
   }
 };
 
+//search product
+const searchProducts = async (req, res) => {
+  try {
+    const searchQuery = req.query.search;
+    if (!searchQuery) {
+      return res.status(400).json({ message: "Search query is required" });
+    }
+
+    // Use regex to make a case-insensitive search across multiple fields
+    const regex = new RegExp(searchQuery, "i");
+
+    const products = await Product.find({
+      $or: [
+        { name: { $regex: searchQuery, $options: "i" } },
+        { "brand.name": { $regex: searchQuery, $options: "i" } },
+        { "category.name": { $regex: searchQuery, $options: "i" } },
+      ],
+    })
+      .populate("brand", "name") // Populate the brand field with just the name
+      .populate("category", "name") // Populate the category field with just the name
+      .exec();
+
+    res.status(200).json({ data: products });
+  } catch (err) {
+    res.status(500).json({
+      message: "Something Went Wrong!",
+    });
+  }
+};
+
 module.exports = {
   getProducts,
   getFeatureProduct,
   getProductByCategory,
   getProduct,
-
   addProduct,
   deleteProduct,
   updateProductStatus,
   updateProuct,
+  searchProducts,
 };

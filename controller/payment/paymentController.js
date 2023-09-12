@@ -1,26 +1,47 @@
+const Order = require("../../modal/orderSchema");
+
 const stripe = require("stripe")(
   "sk_test_51M8ztPHF8W9jmg2GHfc6zRXIeCw2e3IELF0OlXgBXPAE0paXrULApWkWd1AQwb4Sc0NKTrJZJv0XEEH78MZdcWlH00hL2oND6s"
 );
 
 const createPayment = async (req, res) => {
+  const { token, shippingInfo, cartItems, user } = req.body;
+
+  //total calcutation
+  const total = cartItems.reduce(
+    (total, item) => total + item.price * item.quantity,
+    0
+  );
+
   try {
-    const { items, amount } = req.body; // Consider passing the total amount from the client
-
-    // Create a PaymentIntent with the order amount and currency
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: amount * 100, // Convert the amount to cents (assuming amount is in dollars)
+    // Use the Stripe token to create a charge
+    const charge = await stripe.charges.create({
+      amount: total, // Amount in cents
       currency: "usd",
-      payment_method_types: ["card"],
+      source: token.id,
+      description: "Example Charge",
     });
 
-    res.send({
-      clientSecret: paymentIntent.client_secret,
-    });
+    // Save shipping info and transaction ID to MongoDB
+    if (charge.id) {
+      const order = new Order({
+        user: user._id,
+        transactionId: charge.id,
+        items: cartItems,
+        totalAmount: total,
+        shippingInfo: shippingInfo,
+      });
+      const result = await order.save();
+      if (result) {
+        res.json({ success: true, charge });
+      } else {
+        res.status(500).json({ error: "Payment failed" });
+      }
+    } else {
+      res.status(500).json({ error: "Payment failed" });
+    }
   } catch (err) {
-    console.error("Error creating PaymentIntent:", err.message);
-    res.status(500).send({
-      message: "Error creating PaymentIntent.",
-    });
+    res.status(500).json({ error: "Payment failed" });
   }
 };
 

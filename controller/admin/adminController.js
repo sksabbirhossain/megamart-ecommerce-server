@@ -23,7 +23,7 @@ const loginAdmin = async (req, res) => {
 
           //generate token
           const token = jwt.sign(adminInfo, process.env.JWT_SECTET, {
-            expiresIn: 600,
+            expiresIn: "1h",
           });
 
           res.status(200).json({

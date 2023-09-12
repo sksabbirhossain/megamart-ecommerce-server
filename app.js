@@ -41,13 +41,14 @@ app.use("/api/payment", paymentRouter);
 
 //error handler
 app.use((err, req, res, next) => {
+  console.log(err);
   if (res.headersSent) {
-    next("There was a problem!");
+    next(err);
   } else {
     if (err.message) {
-      res.status(500).json(err.message);
+      res.status(500).json(err);
     } else {
-      res.status(500).json("There was an error!");
+      res.status(500).json(err);
     }
   }
 });

@@ -61,7 +61,7 @@ const loginUser = async (req, res) => {
 
         //generate token
         const token = jwt.sign(userInfo, process.env.JWT_SECTET, {
-          expiresIn: 86400000,
+          expiresIn: "7d",
         });
 
         res.status(200).json({
@@ -88,7 +88,28 @@ const loginUser = async (req, res) => {
   }
 };
 
+//check user login or not
+const checkUser = async (req, res) => {
+  try {
+    if (req.userId && req.email) {
+      res.status(200).json({
+        message: "User is Loggedin",
+        status: 200,
+      });
+    } else {
+      res.status(500).json({
+        message: "User is not Login!",
+      });
+    }
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
+  checkUser,
 };

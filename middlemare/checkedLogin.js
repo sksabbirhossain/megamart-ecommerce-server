@@ -5,13 +5,13 @@ const checkedLogin = (req, res, next) => {
   try {
     const token = authorization.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECTET);
-    const { name, email, id } = decoded;
+    const { name, email, _id } = decoded;
     req.name = name;
     req.email = email;
-    req.userId = id;
+    req.userId = _id;
     next();
   } catch (err) {
-    next("Authentication Failure!");
+    res.status(401).json({ message: "Authentication Failure!", status: 401 });
   }
 };
 
