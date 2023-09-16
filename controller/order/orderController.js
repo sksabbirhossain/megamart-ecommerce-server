@@ -18,6 +18,32 @@ const getAllOrder = async (req, res) => {
   }
 };
 
+//update order status
+const orderUpdateStatus = async (req, res) => {
+  const { orderId } = req.params;
+  const { status } = req.body;
+  try {
+    const updateData = await Order.findByIdAndUpdate(
+      { _id: orderId },
+      {
+        $set: {
+          oderStatus: status,
+        },
+      },
+      {
+        new: true,
+      }
+    );
+    res.status(200).json(updateData);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      message: "Something Wrong Try Again!",
+    });
+  }
+};
+
 module.exports = {
   getAllOrder,
+  orderUpdateStatus,
 };
