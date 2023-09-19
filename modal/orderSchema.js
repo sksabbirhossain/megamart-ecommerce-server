@@ -22,7 +22,7 @@ const orderSchema = new mongoose.Schema(
       type: Object,
       required: true,
     },
-    oderStatus: {
+    orderStatus: {
       type: String,
       enum: ["delivered", "processing", "completed"],
       default: "processing",

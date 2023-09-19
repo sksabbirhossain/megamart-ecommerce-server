@@ -18,6 +18,25 @@ const getAllOrder = async (req, res) => {
   }
 };
 
+//get oders by userId
+const getUserOrder = async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const orders = await Order.find({ user: userId });
+    if (orders) {
+      res.status(200).json(orders);
+    } else {
+      res.status(500).json({
+        message: "Something Wrong Try Again!",
+      });
+    }
+  } catch (err) {
+    res.status(500).json({
+      message: "Something Wrong Try Again!",
+    });
+  }
+};
+
 //update order status
 const orderUpdateStatus = async (req, res) => {
   const { orderId } = req.params;
@@ -45,5 +64,6 @@ const orderUpdateStatus = async (req, res) => {
 
 module.exports = {
   getAllOrder,
+  getUserOrder,
   orderUpdateStatus,
 };
