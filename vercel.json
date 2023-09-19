@@ -1,0 +1,14 @@
+{
+  "functions": {
+    "api": {
+      "source": "vercel/functions",
+      "base": "/api"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/.vercel/functions/api/$1"
+    }
+  ]
+}
