@@ -4,11 +4,12 @@ const {
   orderUpdateStatus,
   getUserOrder,
 } = require("../../controller/order/orderController");
+const checkedLogin = require("../../middlemare/checkedLogin");
 
 const router = express.Router();
 
-router.get("/all", getAllOrder);
-router.get("/user-order/:userId", getUserOrder);
-router.patch("/update-status/:orderId", orderUpdateStatus);
+router.get("/all", checkedLogin, getAllOrder);
+router.get("/user-order/:userId", checkedLogin, getUserOrder);
+router.patch("/update-status/:orderId", checkedLogin, orderUpdateStatus);
 
 module.exports = router;
