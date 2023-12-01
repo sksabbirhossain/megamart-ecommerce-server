@@ -15,6 +15,10 @@ const brandSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    picture_info: {
+      public_key: String,
+      file_name: String,
+    },
     status: {
       type: Boolean,
       default: true,

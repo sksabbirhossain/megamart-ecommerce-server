@@ -1,9 +1,10 @@
 const Brand = require("../../modal/brandSchema");
 const fs = require("fs");
 const path = require("path");
+const cloudinary = require("../../cloudinary/config");
 
 //get all brands
-const getAllBrands = async (req, res, next) => {
+const getAllBrands = async (req, res) => {
   try {
     const brands = await Brand.find({});
     res.status(200).json(brands);
@@ -15,7 +16,7 @@ const getAllBrands = async (req, res, next) => {
 };
 
 //get a brand
-const getBrand = async (req, res, nex) => {
+const getBrand = async (req, res) => {
   try {
     const { brandId } = req.params;
     const brands = await Brand.find({ _id: brandId });
@@ -28,28 +29,45 @@ const getBrand = async (req, res, nex) => {
 };
 
 //add a brand
-const addBrand = async (req, res, next) => {
+const addBrand = async (req, res) => {
   try {
     const { name, description } = req.body;
-    const { filename } = req.file || {};
-    const brand = new Brand({
-      name,
-      description,
-      picture: filename,
-    });
-    const result = await brand.save();
-    if (result._id) {
-      res.status(200).json({
-        brand: brand,
+
+    if (!req.file.path) {
+      return res.status(404).json("Brand Image Is Required");
+    }
+
+    //upload picture in cloudinary
+    const fileUpload = await cloudinary.uploader.upload(req.file.path);
+
+    if (fileUpload) {
+      const brand = new Brand({
+        name,
+        description,
+        picture: fileUpload?.secure_url,
+        picture_info: {
+          public_key: fileUpload?.public_id,
+          file_name: req.file?.filename,
+        },
       });
+      const result = await brand.save();
+      if (result._id) {
+        res.status(200).json({
+          brand: brand,
+        });
+      } else {
+        res.status(500).json({
+          message: "Something Was Wrong!",
+        });
+      }
     } else {
       res.status(500).json({
-        message: "Something Was Wrong!",
+        message: "Internal server error!",
       });
     }
   } catch (err) {
     res.status(500).json({
-      message: err.message,
+      message: err,
     });
   }
 };
@@ -59,7 +77,7 @@ const updateBrand = async (req, res, next) => {
   try {
     const { brandId } = req.params;
     const { name, description, status } = req.body;
-    const { filename } = req.file || {};
+    // const { filename } = req.file || {};
 
     // Find the brand by brandId
     const brand = await Brand.findById(brandId);
@@ -84,15 +102,32 @@ const updateBrand = async (req, res, next) => {
     }
 
     // Check if a new picture is provided
-    if (filename) {
+    if (req.file?.path) {
       // Delete the old picture from the local folder
-      if (brand.picture) {
-        const oldPicturePath = path.join("./uploads", brand.picture);
-        fs.unlinkSync(oldPicturePath);
+      if (brand.picture_info?.file_name) {
+        const oldPicturePath = path.join(
+          "./uploads",
+          brand.picture_info?.file_name
+        );
+        if (oldPicturePath) {
+          fs.unlinkSync(oldPicturePath);
+          //delete picture from cloudinary
+          await cloudinary.uploader.destroy(brand.picture_info?.public_key);
+        } else {
+          await cloudinary.uploader.destroy(brand.picture_info?.public_key);
+        }
       }
 
+      // upload new picture
+      const fileUpload = await cloudinary.uploader.upload(req.file.path);
+
       // Update the picture filename
-      brand.picture = filename;
+      brand.picture = fileUpload?.secure_url;
+
+      brand.picture_info = {
+        public_key: fileUpload?.public_id,
+        file_name: req.file?.filename,
+      };
     }
 
     // Save the updated brand
@@ -145,12 +180,15 @@ const deleteBrand = async (req, res, next) => {
     }
 
     // Delete the picture from the local folder
-    if (brand.picture) {
-      const picturePath = path.join("./uploads", brand.picture);
+    if (brand.picture_info?.file_name) {
+      const picturePath = path.join("./uploads", brand.picture_info?.file_name);
       if (fs.existsSync(picturePath)) {
         fs.unlinkSync(picturePath);
       }
     }
+
+    //delete brand picture for cloudinary server
+    await cloudinary.uploader.destroy(brand.picture_info?.public_key);
 
     return res.status(200).json({ message: "Brand deleted successfully" });
   } catch (err) {

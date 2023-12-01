@@ -3,6 +3,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 
+dotenv.config();
 //
 const userRouter = require("./routes/users/userRouter");
 const adminRouter = require("./routes/admin/adminRouter");
@@ -18,7 +19,6 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
-dotenv.config();
 
 //static folder
 app.use("/api/uploads", express.static("./uploads"));

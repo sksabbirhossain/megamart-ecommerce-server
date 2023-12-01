@@ -8,15 +8,40 @@ const User = require("../../modal/userSchema");
 const registerUser = async (req, res, next) => {
   try {
     const { password, name, email } = req.body;
-    const { filename } = req.file || {};
     const hashedPassword = await bcrypt.hash(password, 11);
-    const user = new User({
-      name,
-      email,
-      profilePic: filename || null,
-      password: hashedPassword,
-      role: "user",
-    });
+
+    let user;
+
+    if (req.file?.path) {
+      //upload picture in cloudinary
+      const fileUpload = await cloudinary.uploader.upload(req.file.path);
+      if (fileUpload) {
+        user = new User({
+          name,
+          email,
+          profilePic: fileUpload?.secure_url,
+          picture_info: {
+            public_key: fileUpload?.public_id,
+            file_name: req.file?.filename,
+          },
+          password: hashedPassword,
+          role: "user",
+        });
+      } else {
+        res.status(500).json({
+          message: "server error!",
+        });
+      }
+    } else {
+      user = new User({
+        name,
+        email,
+        profilePic: null,
+        password: hashedPassword,
+        role: "user",
+      });
+    }
+
     const userData = await user.save();
     if (userData._id) {
       res.status(200).json({

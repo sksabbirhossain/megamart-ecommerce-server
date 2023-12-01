@@ -1,6 +1,7 @@
 const path = require("path");
 const fs = require("fs");
 const Category = require("../../modal/categorySchema");
+const cloudinary = require("../../cloudinary/config");
 
 //get all categories
 const getCategories = async (req, res, next) => {
@@ -46,19 +47,36 @@ const getCategoriesByBrandId = async (req, res) => {
 const addCategory = async (req, res, next) => {
   try {
     const { name, brandInfo } = req.body;
-    const { filename } = req.file || {};
-    const category = new Category({
-      name,
-      status: true,
-      brandInfo,
-      picture: filename,
-    });
-    const result = await category.save();
-    if (result._id) {
-      res.status(200).json(result);
+
+    if (!req.file.path) {
+      return res.status(404).json("Brand Image Is Required");
+    }
+
+    //upload picture in cloudinary
+    const fileUpload = await cloudinary.uploader.upload(req.file.path);
+
+    if (fileUpload) {
+      const category = new Category({
+        name,
+        status: true,
+        brandInfo,
+        picture: fileUpload?.secure_url,
+        picture_info: {
+          public_key: fileUpload?.public_id,
+          file_name: req.file?.filename,
+        },
+      });
+      const result = await category.save();
+      if (result._id) {
+        res.status(200).json(result);
+      } else {
+        res.status(500).json({
+          message: "Something Was Wrong!",
+        });
+      }
     } else {
       res.status(500).json({
-        message: "Something Was Wrong!",
+        message: "Internal server Error!",
       });
     }
   } catch (err) {
@@ -98,15 +116,32 @@ const updateCategory = async (req, res, next) => {
     }
 
     // Check if a new picture is provided
-    if (filename) {
+    if (req.file?.path) {
       // Delete the old picture from the local folder
-      if (category.picture) {
-        const oldPicturePath = path.join("./uploads", category.picture);
-        fs.unlinkSync(oldPicturePath);
+      if (category.picture_info?.file_name) {
+        const oldPicturePath = path.join(
+          "./uploads",
+          category.picture_info?.file_name
+        );
+        if (oldPicturePath) {
+          fs.unlinkSync(oldPicturePath);
+          //delete picture from cloudinary
+          await cloudinary.uploader.destroy(category.picture_info?.public_key);
+        } else {
+          await cloudinary.uploader.destroy(category.picture_info?.public_key);
+        }
       }
 
+      // upload new picture
+      const fileUpload = await cloudinary.uploader.upload(req.file.path);
+
       // Update the picture filename
-      category.picture = filename;
+      category.picture = fileUpload?.secure_url;
+
+      category.picture_info = {
+        public_key: fileUpload?.public_id,
+        file_name: req.file?.filename,
+      };
     }
 
     // Save the updated brand
@@ -157,12 +192,18 @@ const deleteCategory = async (req, res, next) => {
     }
 
     // Delete the picture from the local folder
-    if (category.picture) {
-      const picturePath = path.join("./uploads", category.picture);
+    if (category.picture_info?.file_name) {
+      const picturePath = path.join(
+        "./uploads",
+        category.picture_info?.file_name
+      );
       if (fs.existsSync(picturePath)) {
         fs.unlinkSync(picturePath);
       }
     }
+
+    //delete category picture for cloudinary server
+    await cloudinary.uploader.destroy(category.picture_info?.public_key);
 
     await res.status(200).json({ message: "Category deleted successfully" });
   } catch (err) {

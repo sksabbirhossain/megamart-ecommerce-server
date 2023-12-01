@@ -1,6 +1,7 @@
 const path = require("path");
 const fs = require("fs");
 const Product = require("../../modal/productSchema");
+const cloudinary = require("../../cloudinary/config");
 
 //get all product
 const getProducts = async (req, res) => {
@@ -90,14 +91,34 @@ const getProduct = async (req, res) => {
 //add a product
 const addProduct = async (req, res) => {
   try {
-    const { filename } = req.file || {};
-    const product = new Product({
-      ...req.body,
-      picture: filename,
-    });
-    const result = await product.save();
-    if (result._id) {
-      res.status(200).json(result);
+    if (!req.file.path) {
+      return res.status(404).json("Brand Image Is Required");
+    }
+
+    //upload picture in cloudinary
+    const fileUpload = await cloudinary.uploader.upload(req.file.path);
+
+    if (fileUpload) {
+      const product = new Product({
+        ...req.body,
+        picture: fileUpload?.secure_url,
+        picture_info: {
+          public_key: fileUpload?.public_id,
+          file_name: req.file?.filename,
+        },
+      });
+      const result = await product.save();
+      if (result._id) {
+        res.status(200).json(result);
+      } else {
+        res.status(500).json({
+          message: "Internal server error!",
+        });
+      }
+    } else {
+      res.status(500).json({
+        message: "Internal server error!",
+      });
     }
   } catch (err) {
     res.status(500).json({
@@ -180,18 +201,35 @@ const updateProuct = async (req, res) => {
     }
 
     // Check if a new picture is provided
-    if (filename) {
+    if (req.file?.path) {
       // Delete the old picture from the local folder
-      if (product.picture) {
-        const oldPicturePath = path.join("./uploads", product.picture);
-        fs.unlinkSync(oldPicturePath);
+      if (product.picture_info?.file_name) {
+        const oldPicturePath = path.join(
+          "./uploads",
+          product.picture_info?.file_name
+        );
+        if (oldPicturePath) {
+          fs.unlinkSync(oldPicturePath);
+          //delete picture from cloudinary
+          await cloudinary.uploader.destroy(product.picture_info?.public_key);
+        } else {
+          await cloudinary.uploader.destroy(product.picture_info?.public_key);
+        }
       }
 
-      // Update the picture filename
-      product.picture = filename;
+      // upload new picture
+      const fileUpload = await cloudinary.uploader.upload(req.file.path);
+
+      // Update the picture file
+      product.picture = fileUpload?.secure_url;
+
+      product.picture_info = {
+        public_key: fileUpload?.public_id,
+        file_name: req.file?.filename,
+      };
     }
 
-    // Save the updated brand
+    // Save the updated product
     const updatedProduct = await product.save();
 
     res.status(200).json(updatedProduct);
@@ -216,12 +254,18 @@ const deleteProduct = async (req, res) => {
     }
 
     // Delete the picture from the local folder
-    if (product.picture) {
-      const picturePath = path.join("./uploads", product.picture);
+    if (product.picture_info?.file_name) {
+      const picturePath = path.join(
+        "./uploads",
+        product.picture_info?.file_name
+      );
       if (fs.existsSync(picturePath)) {
         fs.unlinkSync(picturePath);
       }
     }
+
+    //delete product picture for cloudinary server
+    await cloudinary.uploader.destroy(product.picture_info?.public_key);
 
     return res.status(200).json({ message: "Product deleted successfully" });
   } catch (err) {
