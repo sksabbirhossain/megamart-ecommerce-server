@@ -2,6 +2,8 @@ const path = require("path");
 const fs = require("fs");
 const Category = require("../../modal/categorySchema");
 const cloudinary = require("../../cloudinary/config");
+const destroyCloudinary = require("../../utils/destroyCloudinary");
+const uploadCloudinary = require("../../utils/uploadCloudinary");
 
 //get all categories
 const getCategories = async (req, res, next) => {
@@ -48,12 +50,12 @@ const addCategory = async (req, res, next) => {
   try {
     const { name, brandInfo } = req.body;
 
-    if (!req.file.path) {
-      return res.status(404).json("Brand Image Is Required");
+    if (!req.file?.buffer) {
+      return res.status(404).json("Category Image Is Required");
     }
 
     //upload picture in cloudinary
-    const fileUpload = await cloudinary.uploader.upload(req.file.path);
+    const fileUpload = await uploadCloudinary(req.file);
 
     if (fileUpload) {
       const category = new Category({
@@ -116,24 +118,29 @@ const updateCategory = async (req, res, next) => {
     }
 
     // Check if a new picture is provided
-    if (req.file?.path) {
+    if (req.file?.buffer) {
       // Delete the old picture from the local folder
       if (category.picture_info?.file_name) {
         const oldPicturePath = path.join(
           "./uploads",
           category.picture_info?.file_name
         );
+
         if (oldPicturePath) {
-          fs.unlinkSync(oldPicturePath);
+          if (fs.existsSync(oldPicturePath)) {
+            fs.unlinkSync(oldPicturePath);
+          }
           //delete picture from cloudinary
-          await cloudinary.uploader.destroy(category.picture_info?.public_key);
+          await destroyCloudinary(category.picture_info?.public_key);
         } else {
-          await cloudinary.uploader.destroy(category.picture_info?.public_key);
+          await destroyCloudinary(category.picture_info?.public_key);
         }
+      } else {
+        await destroyCloudinary(category.picture_info?.public_key);
       }
 
-      // upload new picture
-      const fileUpload = await cloudinary.uploader.upload(req.file.path);
+      // upload new picture to Cloudinary
+      const fileUpload = await uploadCloudinary(req.file);
 
       // Update the picture filename
       category.picture = fileUpload?.secure_url;
@@ -144,7 +151,7 @@ const updateCategory = async (req, res, next) => {
       };
     }
 
-    // Save the updated brand
+    // Save the updated category
     const updatedCategory = await category.save();
 
     res.status(200).json(updatedCategory);
@@ -203,7 +210,7 @@ const deleteCategory = async (req, res, next) => {
     }
 
     //delete category picture for cloudinary server
-    await cloudinary.uploader.destroy(category.picture_info?.public_key);
+    await destroyCloudinary(category.picture_info?.public_key);
 
     await res.status(200).json({ message: "Category deleted successfully" });
   } catch (err) {

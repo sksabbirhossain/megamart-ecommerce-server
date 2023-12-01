@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 
 //
 const User = require("../../modal/userSchema");
+const uploadCloudinary = require("../../utils/uploadCloudinary");
 
 //create a user
 const registerUser = async (req, res, next) => {
@@ -12,9 +13,9 @@ const registerUser = async (req, res, next) => {
 
     let user;
 
-    if (req.file?.path) {
+    if (req.file?.buffer) {
       //upload picture in cloudinary
-      const fileUpload = await cloudinary.uploader.upload(req.file.path);
+      const fileUpload = await uploadCloudinary(req.file);
       if (fileUpload) {
         user = new User({
           name,

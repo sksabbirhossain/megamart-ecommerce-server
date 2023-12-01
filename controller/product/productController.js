@@ -2,6 +2,8 @@ const path = require("path");
 const fs = require("fs");
 const Product = require("../../modal/productSchema");
 const cloudinary = require("../../cloudinary/config");
+const uploadCloudinary = require("../../utils/uploadCloudinary");
+const destroyCloudinary = require("../../utils/destroyCloudinary");
 
 //get all product
 const getProducts = async (req, res) => {
@@ -91,12 +93,12 @@ const getProduct = async (req, res) => {
 //add a product
 const addProduct = async (req, res) => {
   try {
-    if (!req.file.path) {
-      return res.status(404).json("Brand Image Is Required");
+    if (!req.file?.buffer) {
+      return res.status(404).json("Product Image Is Required");
     }
 
     //upload picture in cloudinary
-    const fileUpload = await cloudinary.uploader.upload(req.file.path);
+    const fileUpload = await uploadCloudinary(req.file);
 
     if (fileUpload) {
       const product = new Product({
@@ -201,26 +203,31 @@ const updateProuct = async (req, res) => {
     }
 
     // Check if a new picture is provided
-    if (req.file?.path) {
+    if (req.file?.buffer) {
       // Delete the old picture from the local folder
       if (product.picture_info?.file_name) {
         const oldPicturePath = path.join(
           "./uploads",
           product.picture_info?.file_name
         );
+
         if (oldPicturePath) {
-          fs.unlinkSync(oldPicturePath);
+          if (fs.existsSync(oldPicturePath)) {
+            fs.unlinkSync(oldPicturePath);
+          }
           //delete picture from cloudinary
-          await cloudinary.uploader.destroy(product.picture_info?.public_key);
+          await destroyCloudinary(product.picture_info?.public_key);
         } else {
-          await cloudinary.uploader.destroy(product.picture_info?.public_key);
+          await destroyCloudinary(product.picture_info?.public_key);
         }
+      } else {
+        await destroyCloudinary(product.picture_info?.public_key);
       }
 
-      // upload new picture
-      const fileUpload = await cloudinary.uploader.upload(req.file.path);
+      // upload new picture to Cloudinary
+      const fileUpload = await uploadCloudinary(req.file);
 
-      // Update the picture file
+      // Update the picture filename
       product.picture = fileUpload?.secure_url;
 
       product.picture_info = {
@@ -265,7 +272,7 @@ const deleteProduct = async (req, res) => {
     }
 
     //delete product picture for cloudinary server
-    await cloudinary.uploader.destroy(product.picture_info?.public_key);
+    await destroyCloudinary(product.picture_info?.public_key);
 
     return res.status(200).json({ message: "Product deleted successfully" });
   } catch (err) {

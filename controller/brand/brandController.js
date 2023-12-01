@@ -1,7 +1,8 @@
 const Brand = require("../../modal/brandSchema");
 const fs = require("fs");
 const path = require("path");
-const cloudinary = require("../../cloudinary/config");
+const uploadCloudinary = require("../../utils/uploadCloudinary");
+const destroyCloudinary = require("../../utils/destroyCloudinary");
 
 //get all brands
 const getAllBrands = async (req, res) => {
@@ -33,12 +34,12 @@ const addBrand = async (req, res) => {
   try {
     const { name, description } = req.body;
 
-    if (!req.file.path) {
+    if (!req.file?.buffer) {
       return res.status(404).json("Brand Image Is Required");
     }
 
-    //upload picture in cloudinary
-    const fileUpload = await cloudinary.uploader.upload(req.file.path);
+    // Upload Base64-encoded image to Cloudinary
+    const fileUpload = await uploadCloudinary(req.file);
 
     if (fileUpload) {
       const brand = new Brand({
@@ -102,24 +103,29 @@ const updateBrand = async (req, res, next) => {
     }
 
     // Check if a new picture is provided
-    if (req.file?.path) {
+    if (req.file?.buffer) {
       // Delete the old picture from the local folder
       if (brand.picture_info?.file_name) {
         const oldPicturePath = path.join(
           "./uploads",
           brand.picture_info?.file_name
         );
+
         if (oldPicturePath) {
-          fs.unlinkSync(oldPicturePath);
+          if (fs.existsSync(oldPicturePath)) {
+            fs.unlinkSync(oldPicturePath);
+          }
           //delete picture from cloudinary
-          await cloudinary.uploader.destroy(brand.picture_info?.public_key);
+          await destroyCloudinary(brand.picture_info?.public_key);
         } else {
-          await cloudinary.uploader.destroy(brand.picture_info?.public_key);
+          await destroyCloudinary(brand.picture_info?.public_key);
         }
+      } else {
+        await destroyCloudinary(brand.picture_info?.public_key);
       }
 
-      // upload new picture
-      const fileUpload = await cloudinary.uploader.upload(req.file.path);
+      // upload new picture to Cloudinary
+      const fileUpload = await uploadCloudinary(req.file);
 
       // Update the picture filename
       brand.picture = fileUpload?.secure_url;
@@ -188,7 +194,7 @@ const deleteBrand = async (req, res, next) => {
     }
 
     //delete brand picture for cloudinary server
-    await cloudinary.uploader.destroy(brand.picture_info?.public_key);
+    await destroyCloudinary(brand.picture_info?.public_key);
 
     return res.status(200).json({ message: "Brand deleted successfully" });
   } catch (err) {
