@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "megamart e-commerce admin dashboard server",
   "main": "app.js",
-  "repository": "https://github.com/sksabbirhossain/megamart-dashboard-server.git",
+  "repository": "https://github.com/sksabbirhossain/megamart-ecommerce-server.git",
   "author": "sksabbirhossain <sksabbirhossain4@gmail.com>",
   "license": "MIT",
   "scripts": {
